@@ -12,7 +12,7 @@ SET $_get_vars = (
         ) AS get_var
     FROM
         json_each(sqlpage.variables('GET'))
-    WHERE "key" NOT LIKE '\_%' ESCAPE '\'
+    WHERE "key" NOT LIKE '~_%' ESCAPE '~'
 );
 
 SET $_get_vars_patched = json_patch($_get_vars, '{"lang": "xx"}');

@@ -10,6 +10,10 @@
   min-width: 200%;
 }
 
+.menu_theme_slim {
+  min-width: inherit !important;
+}
+
 div.dropdown-menu- {
   min-width: inherit !important; 
 }

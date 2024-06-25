@@ -55,10 +55,12 @@ INSERT INTO menus(label, tabler_icon, icon_only, parent_label, link, position, s
     ('What''s This', 'pointer-question', 0, 'Help', 'whats_this.sql', 2, json('{}')),
     ('Tip of the Day', 'bulb', 0, 'Help', 'tip_of_the_day.sql', 3, json('{}')),
 
-    ('Options', 'settings', 1, NULL, NULL, 5, json('{}')),
-    ('Login', 'login', 1, 'Options', 'login.sql', 1, json_object('authenticated', FALSE)),
-    ('Logout', 'logout', 1, 'Options', 'logout.sql', 2, json_object('authenticated', TRUE)),
+    ('Theme', 'icons', 0, NULL, NULL, 5, json('{}')),
+
+    ('Options', 'settings', 1, NULL, NULL, 6, json('{}')),
+    ('Login', 'login', 1, 'Options', '?authenticated=1', 1, json_object('authenticated', FALSE)),
+    ('Logout', 'logout', 1, 'Options', '?authenticated=0', 2, json_object('authenticated', TRUE)),
     ('Sign Up', 'user-scan', 1, 'Options', 'sign_up.sql', 3, json_object('authenticated', FALSE)),
     ('Profile', 'user', 1, 'Options', 'profile.sql', 4, json_object('authenticated', TRUE)),
 
-    ('Language', 'world-longitude', 1, NULL, NULL, 6, json('{}'));
+    ('Language', 'world-longitude', 1, NULL, NULL, 7, json('{}'));

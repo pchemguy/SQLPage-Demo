@@ -21,12 +21,3 @@ SELECT
 FROM
     json_each(sqlpage.variables('GET'))
 WHERE NOT "key" like '~_%' ESCAPE '~';
-
-SELECT
-    json_group_object("key",
-        iif(CAST(CAST(value AS NUMERIC) AS TEXT) = value,
-            CAST(value AS NUMERIC), value)
-    )
-FROM
-    json_each(sqlpage.variables('GET'))
-WHERE NOT "key" like '~_%' ESCAPE '~';

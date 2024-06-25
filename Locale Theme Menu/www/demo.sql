@@ -6,16 +6,17 @@ SET $_get_vars = (
         ) AS get_var
     FROM
         json_each(sqlpage.variables('GET'))
-    WHERE NOT "key" like '\_%' ESCAPE '\'
+    WHERE NOT "key" like '~_%' ESCAPE '~'
 );
 
 
-SET $_locale_code = $lang;                         -- 'en', 'ru', 'de', 'fr', 'zh-cn'
-SET $_theme = 'fancy'; --$theme;                              -- 'default', 'fancy'
-SET $_hide_language_names = $hide_language_names;  -- 0, 1 (BOOLEAN)
-SET $_authenticated = $authenticated;              -- 0, 1 (BOOLEAN)
+SET $_locale_code = $lang;                                    -- 'en', 'ru', 'de', 'fr', 'zh-cn'
+SET $_theme = $theme;                                         -- 'default', 'fancy'
+SET $_hide_language_names = ifnull(:hide_language_names, 0);  -- 0, 1 (BOOLEAN)
+SET $_authenticated = $authenticated;                         -- 0, 1 (BOOLEAN)
 
 -- =============================================================================
+-- ================================ SHELL ======================================
 -- =============================================================================
 
 WITH
@@ -31,10 +32,12 @@ WITH
 
     config_user AS (
         SELECT
-            lower(ifnull($_locale_code, '_'))               AS locale_code,
+            lower(iif($_locale_code IS NULL OR $_locale_code = '',
+                      '_', $_locale_code ))                            AS locale_code,
+            lower(iif($_theme IS NULL OR $_theme = '', '_', $_theme )) AS theme,
             lower(ifnull($_theme, '_'))                     AS theme,
-            CAST($_hide_language_names AS INTEGER)          AS hide_language_names,
-            CAST(ifnull($_authenticated, FALSE) AS INTEGER) AS authenticated
+            CAST($_hide_language_names AS INTEGER)                     AS hide_language_names,
+            CAST(ifnull($_authenticated, FALSE) AS INTEGER)            AS authenticated
 --      FROM test_values
     ),
     
@@ -105,10 +108,19 @@ WITH
         ORDER BY position
     ),
     
+    -- Prepares theme items.
+    -- This is a dynamically generated menu item.
+    
+    themes AS (
+        SELECT value AS position, "key" AS label
+        FROM sqlpage_files, json_each(contents)
+        WHERE sqlpage_files.path = 'themes/themes.json'
+		ORDER BY position
+    ),
     -- Prepares a list of top menu items with default icons.
     -- The language menu includes the "global/neutral/undefinded" icon.
     
-    top_menus_global AS (
+    top_menus AS (
         SELECT
             position,
             label,
@@ -121,21 +133,43 @@ WITH
             -- These classes are applied to respective submenus for css-based fine-tuning.
             
             CASE
+                -- Demo, how items which should only be displayed to (un)authenticated users,
+                -- can be filtered out. When this filter is not specified, always show.
+
+                -- This part includes substantial amount of "Language" menu specific code
+                -- A better approach probably to split the two case via the WHERE filter
+                -- handle the "language" menu in a separate SELECT and use UNION ALL
+
                 WHEN (state_filter ->> '$.authenticated') IS NULL
                   OR state_filter ->> '$.authenticated' = ifnull(authenticated, FALSE) THEN
                     json_object(
                         'title', iif(icon_only IS TRUE, NULL, ifnull(locale ->> ('$.' || label), label)),
-                        iif(theme IS NULL, 'icon', 'image'),
-                        iif(theme IS NULL, tabler_icon, '/' || (theme ->> ('$.' || label))),
+                        iif(theme IS NULL AND (label <> 'Language' OR locale IS NULL), 'icon', 'image'),
+
+                        iif(theme IS NULL AND (label <> 'Language' OR locale IS NULL), tabler_icon,
+                            '/' || iif(label <> 'Language' OR locale IS NULL, 
+                                       (theme ->> ('$.' || label)),
+
+                                       -- Sets the top level Language item to reflect
+                                       -- selected locale.
+                                       --
+                                       (theme_default ->> ('$.' || locale_label)))
+                        ),
+
                         'class',
+                        CASE
+                            WHEN label <> 'Language' THEN
+                                ' menu_' || lower(label) || ' menu_' || lower(label) || '_slim'
+                            ELSE
                                  -- Handles special cases: only sets the '_slim' class on the 'Language'
                                  -- menu when language names (labels) are hidden. Only set the base class
 								 -- for English localization (the extra whitespaces are painfull...)
                                  iif(ifnull(locale_label, 'English') IN ('English', 'Chinese'),
 								     ' menu_' || lower(label), '') ||
-                                 iif(label = 'Language' AND hide_language_names IS NOT TRUE, '',
+                                 iif(hide_language_names IS NOT TRUE, '',
                                      ' menu_' || lower(label) || '_slim'
                                  )
+                        END
                     )
                 ELSE
                     NULL
@@ -145,25 +179,6 @@ WITH
         ORDER BY position
     ),
 
-    -- The sole purpose of this separate modification is to set the icon
-    -- of the top language menu to reflect the current locale
-
-    top_menus AS (
-        SELECT
-            position,
-            label,
-            iif(label <> 'Language' OR locale IS NULL OR top_item IS NULL,
-                top_item,
-                json_set(
-                    top_item,
-                    '$.image',
-                    '/' || (theme ->> ('$.' || locale_label))
-                )
-             ) AS top_item
-        FROM top_menus_global, config
-        ORDER BY position
-    ),
-    
     -- Prepares a list of submenu lines.
     
     menu_lines AS (
@@ -181,7 +196,23 @@ WITH
                         'title', iif(icon_only IS TRUE, NULL, ifnull(locale ->> ('$.' || label), label)),
                         iif(theme IS NULL, 'icon', 'image'),
                         iif(theme IS NULL, tabler_icon, '/' || (theme ->> ('$.' || label))),
-                        'link', link
+                        'link',
+                        CASE
+                            WHEN label = 'Login' THEN
+                                (
+                                    SELECT
+                                        '?' || group_concat("key" || '=' || value, '&' ORDER BY "key")
+                                    FROM json_each(json_patch($_get_vars, json_object('authenticated', 1)))
+                                )
+                            WHEN label = 'Logout' THEN
+                                (
+                                    SELECT
+                                        '?' || group_concat("key" || '=' || value, '&' ORDER BY "key")
+                                    FROM json_each(json_patch($_get_vars, json_object('authenticated', 0)))
+                                )
+                            ELSE
+                                link
+                        END
                     )
             END AS menu_line
         FROM menus, config
@@ -197,9 +228,30 @@ WITH
                 'title',
                 iif(hide_language_names IS TRUE, NULL, ifnull(locale ->> ('$.' || label), label)),
                 'image', '/' || (iif(theme IS NULL, theme_default, theme) ->> ('$.' || label)),
-                'link', '?lang=' || code
+                'link', (
+                    SELECT
+                        '?' || group_concat("key" || '=' || value, '&' ORDER BY "key")
+                    FROM json_each(json_patch($_get_vars, json_object('lang', code)))
+                )
             ) AS menu_line
         FROM languages, config
+
+        -- Generates and appends the Theme submenu lines
+        
+            UNION ALL
+        SELECT
+            'Theme' AS parent_label,
+            position,
+            json_object(
+                'title',
+                ifnull(locale ->> ('$.' || label), label),
+                'link', (
+                    SELECT
+                        '?' || group_concat("key" || '=' || value, '&' ORDER BY "key")
+                    FROM json_each(json_patch($_get_vars, json_object('theme', label)))
+                )
+            ) AS menu_line
+        FROM themes, config
         ORDER BY parent_label, position
     ),
     
@@ -269,3 +321,36 @@ WITH
         FROM menu
     )
 SELECT * FROM shell_dynamic;
+
+
+-- =============================================================================
+-- ======================= Toggle Language Names Form ==========================
+-- =============================================================================
+
+SELECT
+    'dynamic' AS component,
+    json_array(
+        json_object(
+            'component',        'form',
+            'validate',         iif(ifnull(:hide_language_names, 0), 'Show', 'Hide') || ' Language Labels',
+            'action',           (
+                                    SELECT
+                                        '?' || group_concat("key" || '=' || value, '&' ORDER BY "key")
+                                    FROM json_each($_get_vars)
+                                )
+        ),
+        json_object(
+            'name',             'hide_language_names',
+            'type',             'hidden',
+            'value',            1 - ifnull(:hide_language_names, 0)
+        )                               
+    ) AS properties;
+
+
+-- =============================================================================
+-- DEBUG
+-- =============================================================================
+
+SELECT
+    'dynamic' AS component,
+    sqlpage.run_sql('footer_debug_post-get-set.sql') AS properties;
