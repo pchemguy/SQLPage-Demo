@@ -84,3 +84,11 @@ which saves existing GET parameters. Then, when I need to change on of the GET p
     SELECT '?' || group_concat("key" || '=' || value, '&' ORDER BY "key")
     FROM json_each(json_patch($_get_vars, json_object('{PARAM-NAME}', {PARAM-VALUE})))
 ```
+
+
+
+
+![](https://raw.github.com/pchemguy/SQLPage-Demo/main/Locale%20Theme%20Menu/Screenshot/1.png)
+![](https://raw.github.com/pchemguy/SQLPage-Demo/main/Locale%20Theme%20Menu/Screenshot/2.png)
+![](https://raw.github.com/pchemguy/SQLPage-Demo/main/Locale%20Theme%20Menu/Screenshot/3.png)
+![](https://raw.github.com/pchemguy/SQLPage-Demo/main/Locale%20Theme%20Menu/Screenshot/4.png)
