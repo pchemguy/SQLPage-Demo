@@ -1,0 +1,10 @@
+{
+    "menu": {
+        "Language": "themes/fancy/globe.svg",
+        "English":  "themes/fancy/US.svg",
+        "Chinese":  "themes/fancy/CN.svg",
+        "French":   "themes/fancy/FR.svg",
+        "German":   "themes/fancy/DE.svg",
+        "Russian":  "themes/fancy/RU.svg",
+    }
+}

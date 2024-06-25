@@ -1,0 +1,11 @@
+div.dropdown-menu {
+  min-width: inherit !important; 
+}
+
+a.dropdown-item {
+  min-width: inherit !important; 
+}
+
+.slim_item {
+  min-width: inherit !important; 
+}

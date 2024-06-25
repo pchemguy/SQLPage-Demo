@@ -1,0 +1,58 @@
+{
+    "menu": {
+        "New": "themes/fancy/Menu_File_New--lx03251.svg",
+        "Open": "themes/fancy/Menu_File_Open--lc_open.svg",
+        "Close": "themes/fancy/Menu_File_Close--lc_closedoc.svg",
+        "Save": "themes/fancy/Menu_File_Save--lc_save.svg",
+        "Save As": "themes/fancy/Menu_File_SaveAs--lc_saveas.svg",
+        "Save a Copy": "themes/fancy/Menu_File_SaveCopy--lc_saveacopy.svg",
+        "Save All": "themes/fancy/Menu_File_SaveAll--lc_saveall.svg",
+        "Export": "themes/fancy/Menu_File_Export--lc_exportto.svg",
+        "Print Preview": "themes/fancy/Menu_File_PrintPreview--lc_printpreview.svg",
+        "Print": "themes/fancy/Menu_File_Print--lc_print.svg",
+        "Printer Settings": "themes/fancy/Menu_File_PrinterSettings--lc_printersetup.svg",
+        "Properties": "themes/fancy/Menu_File_Properties--lc_setdocumentproperties.svg",
+        "Digital Signatures": "themes/fancy/Menu_File_DigitalSignatures--lc_signature.svg",
+        "Exit": "themes/fancy/Menu_File_Exit--lc_quit.svg",
+
+
+        "Undo": "themes/fancy/Menu_Edit_Undo--lc_undo.svg",
+        "Redo": "themes/fancy/Menu_Edit_Redo--lc_redo.svg",
+        "Repeat": "themes/fancy/Menu_Edit_Repeat--lc_repeat.svg",
+        "Cut": "themes/fancy/Menu_Edit_Cut--lc_cut.svg",
+        "Copy": "themes/fancy/Menu_Edit_Copy--lc_copy.svg",
+        "Paste": "themes/fancy/Menu_Edit_Paste--lc_paste.svg",
+        "Select All": "themes/fancy/Menu_Edit_SelectAll--lc_selectall.svg",
+        "Find": "themes/fancy/Menu_Edit_Find--lc_recsearch.svg",
+        "Find & Replace": "themes/fancy/Menu_Edit_FindReplace--lc_searchdialog.svg",
+
+
+        "Image": "themes/fancy/Menu_Insert_Image--lc_insertgraphic.svg",
+        "Chart": "themes/fancy/Menu_Insert_Chart--lc_drawchart.svg",
+        "OLE Object": "themes/fancy/Menu_Insert_OleObject--lc_insertobject.svg",
+        "Shape": "themes/fancy/Menu_Insert_Shape--lc_graphic.svg",
+        "Section": "themes/fancy/Menu_Insert_Section--sc_insertsection.svg",
+        "Text Box": "themes/fancy/Menu_Insert_TextBox--lc_text.svg",
+        "Comment": "themes/fancy/Menu_Insert_Comment--lc_shownote.svg",
+        "Hyperlink": "themes/fancy/Menu_Insert_Hyperlink--lc_inserthyperlink.svg",
+        "Bookmark": "themes/fancy/Menu_Insert_Bookmark--lc_insertbookmark.svg",
+
+
+        "Help Contents": "themes/fancy/Menu_Help_Help--lc_helpindex.svg",
+        "What's This": "themes/fancy/Menu_Help_WhatsThis--sc_extendedhelp.svg",
+        "Tip of the Day": "themes/fancy/Menu_Help_TipOfDay--tip.svg",
+
+        "Options": "themes/fancy/settings.svg",
+        "Login": "themes/fancy/Login.svg",
+        "Logout": "themes/fancy/logout.svg",
+        "Sign Up": "themes/fancy/user-signup-3058.svg",
+        "Profile": "themes/fancy/user-person-profile.svg",
+
+        "Language": "themes/fancy/globe.svg",
+        "English": "themes/fancy/US.svg",
+        "Chinese": "themes/fancy/CN.svg",
+        "French": "themes/fancy/FR.svg",
+        "German": "themes/fancy/DE.svg",
+        "Russian": "themes/fancy/RU.svg",
+    }
+}
