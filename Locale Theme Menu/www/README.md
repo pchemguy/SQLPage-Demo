@@ -86,8 +86,6 @@ which saves existing GET parameters. Then, when I need to change on of the GET p
 ```
 
 
-
-
 ![](https://raw.github.com/pchemguy/SQLPage-Demo/main/Locale%20Theme%20Menu/Screenshot/1.png)
 ![](https://raw.github.com/pchemguy/SQLPage-Demo/main/Locale%20Theme%20Menu/Screenshot/2.png)
 ![](https://raw.github.com/pchemguy/SQLPage-Demo/main/Locale%20Theme%20Menu/Screenshot/3.png)
