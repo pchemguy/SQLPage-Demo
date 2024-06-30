@@ -1,8 +1,8 @@
 # How to build Rust Rusqlite applications linking against custom SQLite builds on Windows?
 
-I am new to Rust and Rusqlite, but I would like to use a custom-built SQLite library with Rusqlite bindings while building a Rust-coded database application. I am interested in both dynamic and static linking options. The Rusqlite README states that linking to SQLite is complicated on Windows and indicates that linking is possible via a vcpkg package, but does not provide any further instructions (and I do not want to use vcpkg or any other "helper" anyway).
+I am new to Rust and Rusqlite, but I would like to use a custom-built SQLite library with Rusqlite bindings while building a Rust-coded database application. I am interested in both dynamic and static linking options. The Rusqlite README states that linking to SQLite is complicated on Windows and indicates that linking is possible via a vcpkg package but does not provide any further instructions (and I do not want to use vcpkg or any other "helper" anyway).
 
-The official Rust website [suggests](https://rust-lang.org/tools/install) (when opened from a Windows machine) using Rust toolset together with the  Visual Studio C++ Build Tools, which I have, as the default building environment. Rusqlite includes one example, "persons", which can be built via:
+The official Rust website [suggests](https://rust-lang.org/tools/install) (when opened from a Windows machine) using the Rust toolset and the Visual Studio C++ Build Tools (which I have) as the default building environment. Rusqlite includes one example, "persons", which can be built via:
 
 ```cmd
 {repo-root}> cargo build --example persons --features bundled
@@ -10,7 +10,7 @@ or
 {repo-root}> cargo build --example persons --features bundled-full
 ```
 
-I was able to build the "persons" example and run it successfully. I was also able to make and build other simple examples via the same commands. These commands create a statically linked executable "persons.exe" in the "{repo root}\\target\\debug\\examples" directory using the copy of SQLite included with the library.
+I could build the "persons" example and run it successfully. I could also make and build other simple examples via the same commands. These commands create a statically linked executable "persons.exe" in the "{repo root}\\target\\debug\\examples" directory using the copy of SQLite included with the library.
 
 Commands
 
@@ -28,13 +28,13 @@ Rusqlite repository includes a copy of SQLite [amalgamation file](https://sqlite
 
 ### Precompiled SQLite binary
 
-Download the archive and extract it into "sqlite" directory placed next to the "rusqlite" directory, containing a cloned/downloaded copy of the Rusqlite repository. The "sqlite" directory should contain two files, sqlite3.dll and sqlite3.def. The sqlite3.lib file necessary for the linker can be generated from these two files. Open a "cmd" console with building (Rust/MSBuild) environment set, change into the "sqlite" directory and execute command:
+Download the archive and extract it into the "sqlite" directory placed next to the "rusqlite" directory, containing a cloned/downloaded copy of the Rusqlite repository. The "sqlite" directory should contain two files, sqlite3.dll and sqlite3.def. The sqlite3.lib file necessary for the linker can be generated from these two files. Open a "cmd" console with the building (Rust/MSBuild) environment set, change into the "sqlite" directory, and execute this command:
 
 ```bat
 ...sqlite> lib /MACHINE:x64 /DEF:sqlite3.def
 ```
 
-which should create two new files, including sqlite3.lib. Now change into "rusqlite" directory, `cd ..\rusqlite`. The location of "sqlite3.lib" can be passed to the linker via the `SQLITE3_LIB_DIR` environment variable. Executing
+which should create two new files, including sqlite3.lib. Now change into the "rusqlite" directory, `cd ..\rusqlite`. The location of "sqlite3.lib" can be passed to the linker via the `SQLITE3_LIB_DIR` environment variable. Executing
 
 ```bat
 ...rusqlite> (set "SQLITE3_LIB_DIR=..\sqlite") && cargo build --example persons
@@ -42,7 +42,7 @@ or
 ...rusqlite> (set "SQLITE3_LIB_DIR=..\sqlite") && cargo build --example persons --features modern-full
 ```
 
-should complete successfully and generate  "persons.exe" in the "{repo root}\\target\\debug\\examples". There are several possible ways to verify the result before executing it. For example, the [Far Manager](https://farmanager.com/index.php?l=en) has the [ImpEx](https://github.com/Maximus5/FarPlugins/tree/master/ImpEx) plugin (also available from [Far PlugRing](https://plugring.farmanager.com/plugin.php?pid=790)) that provides a convenient access to executable metadata. The list of top-level items seen in ImpEx for "persons.exe" should contain the "64BIT" file-like item and the "Imports Table" directory, among other things. Opening the latter should list several directory-like items named after the imported DLL files, including one for sqlite3.dll.
+should complete successfully and generate  "persons.exe" in the "{repo root}\\target\\debug\\examples". There are several possible ways to verify the result before executing it. For example, the [Far Manager](https://farmanager.com/index.php?l=en) has the [ImpEx](https://github.com/Maximus5/FarPlugins/tree/master/ImpEx) plugin (also available from [Far PlugRing](https://plugring.farmanager.com/plugin.php?pid=790)) that provides convenient access to executable metadata. The list of top-level items seen in ImpEx for "persons.exe" should contain the "64BIT" file-like item and the "Imports Table" directory, among other things. Opening the latter should list several directory-like items named after the imported DLL files, including one for sqlite3.dll.
 
 ![](https://raw.github.com/pchemguy/SQLPage-Demo/main/Custom%20Builds%20of%20Rusqlite/img/Far-ImpEx-Top.png)
 
@@ -155,11 +155,95 @@ link /MACHINE:x64 /DEF:sqlite3.def sqlite3.lo /DLL /OUT:sqlite3.dll
 exit /b 0
 ```
 
-The script is relatively small and is split into functional blocks, so I will not go over it (follow the code for further details). When executed, the script downloads a copy of SQLite [amalgamation](https://sqlite.org/amalgamation.html) release, expands it, and builds it (MSBuild environment should be activated as before). It creates the "sqlite" directory, which will contain several files, including sqlite3.dll and sqlite3.lib, which can be used as before. This process can be used to link the the application dynamically against custom-built SQLite, which might integrate additional extensions, such as ICU (see, for example, this [project](https://pchemguy.github.io/SQLite-ICU-MinGW/repo-scripts), which focuses on the MinGW toolchain, but also discusses the MSBuild environment and provides custom build scripts).
+The script is relatively small and is split into functional blocks, so I will not go over it (follow the code for further details). When executed, the script downloads a copy of SQLite [amalgamation](https://sqlite.org/amalgamation.html) release, expands it, and builds it (MSBuild environment should be activated as before). It creates the "sqlite" directory with several files, including sqlite3.dll and sqlite3.lib, which can be used as before. This process can be used to link the application dynamically against custom-built SQLite, which might integrate additional extensions, such as ICU (see, for example, this [project](https://pchemguy.github.io/SQLite-ICU-MinGW/repo-scripts), which focuses on the MinGW toolchain, but also discusses the MSBuild environment and provides custom build scripts).
 
 ## Embedding custom SQLite - hacking into the Rusqlite build process
 
-This is, perhaps the most complicated part, and its primary goal is more of exploratory nature, rather than a recipe for routine use. When one of the "bundled" building options is used, the Cargo-controlled Rusqlite build process compiles the sqlite3.c amalgamation file included in the "libsqlite3-sys\\sqlite3" directory of the Rusqlite repository. This amalgamation file may, in principle, be replaced with a custom copy, but that is the easy part. Because SQLite build process is controlled during build time via compiler options, passing these options to the C compiler invoked by Cargo is the essential (unless you want to deal with Rust build script ("libsqlite3-sys\\build.rs") which is beyond this exploratory). The script "libsqlite3-sys\\build.rs" does accept SQLite "-Dxx" configuration parameters via the "LIBSQLITE3_FLAGS" environment variable, but it will reject other kinds of options in this variable, such as include options. More over, there are also linking options, which may need to be passed somehow.
+This part is, perhaps, the most complicated, and its primary goal is more of an exploratory nature rather than a recipe for routine use. When one of the "bundled" building options is used, the Cargo-controlled Rusqlite build process compiles the sqlite3.c amalgamation file included in the "libsqlite3-sys\\sqlite3" directory of the Rusqlite repository. This amalgamation file may, in principle, be replaced with a custom copy, but that is the easy part. Because the SQLite build process is controlled during build time via compiler options, passing these options to the C compiler invoked by Cargo is essential (unless you want to deal with Rust build script ("libsqlite3-sys\\build.rs"), which is beyond this exploratory). The script "libsqlite3-sys\\build.rs" does accept SQLite "-Dxx" configuration parameters via the "LIBSQLITE3_FLAGS" environment variable, but it will reject other kinds of options in this variable, such as include options. Moreover, there are also linking options, which may need to be passed somehow.
 
-For example, I have another script (or scripts, some available via from the associated [repository](https://pchemguy.github.io/SQLite-ICU-MinGW/) and more recent MSVC script available {here]())
+For example, I have an extended script (or scripts, some available via from the associated [repository](https://pchemguy.github.io/SQLite-ICU-MinGW/) and a more recent MSVC script available [here](https://github.com/pchemguy/SQLPage-Demo/blob/main/Custom%20Builds%20of%20Rusqlite/sqlite_MSVC_Cpp_Build_Tools.ext.bat)), which kind of hack the SQLite build process. The scripts not only enable integrated SQLite extensions but also "integrate" several loadable extensions. Among others, I integrate the Zipfile extension, which depends on the [zlib](https://zlib.net) library, and enable the ICU extension, which depends on the [ICU](https://icu.unicode.org) library. Both of these extensions require compiler and linker flags. I am not aware of a generic solution, but MSBuild tools support special ["CL"/"\_CL\_"](https://learn.microsoft.com/en-us/cpp/build/reference/cl-environment-variables?view=msvc-170) and ["LINK"/"\_LINK\_"](https://learn.microsoft.com/en-us/cpp/build/reference/linking?view=msvc-170) environment variables, which permit passing the necessary compiler/linker options. Most of the code of the extended scripts is focused on building a customized amalgamation file. Once prepared, this amalgamation can be compiled to the dll library or used to replace the amalgamation included with Rusqlite. Before calling Cargo, the script sets the mentioned environment variables. The relevant section of the script:
 
+```bat
+:: ============================================================================
+:RUSQLITE
+:: 
+:: If RUSQLITE_REPO is set and valid, execute bundled build 
+:: 
+
+if not exist "%RUSQLITE_REPO%\libsqlite3-sys\sqlite3\sqlite3.c" (exit /b 0)
+
+
+echo ========== Building RUSQLITE ===========
+
+cd /d "%RUSQLITE_REPO%\libsqlite3-sys\sqlite3"
+if not exist "sqlite3.c.orig" (
+    copy /Y "sqlite3.c" "sqlite3.c.orig"
+    copy /Y "sqlite3.h" "sqlite3.h.orig"
+)
+copy /Y "%BINDIR%\src"
+
+if %USE_ZLIB% EQU 1 (
+    set ZLIBINCDIR=!DISTRODIR!\compat\zlib
+    set ZLIBLIBDIR=!DISTRODIR!\compat\zlib
+    set _CL_=!_CL_! "-I%DISTRODIR%\compat\zlib"
+    set LINK=!LINK! "/LIBPATH:!ZLIBLIBDIR!"
+    set _LINK_=!_LINK_! zdll.lib
+)
+
+if %USE_ICU% EQU 1 (
+    set _CL_=!_CL_! -DSQLITE_ENABLE_ICU=1 "-I!ICUINCDIR!"
+    set LINK=!LINK! "/LIBPATH:!ICULIBDIR!"
+    set _LINK_=!_LINK_! icuuc.lib icuin.lib
+    set Path=!ICUBINDIR!;!Path!
+)
+
+cd /d "%RUSQLITE_REPO%"
+set LIBSQLITE3_FLAGS=%EXT_FEATURE_FLAGS%
+set SQLITE3_LIB_DIR=%BINDIR%"
+::set LINK=!LINK! "/LIBPATH:%BINDIR%"
+if not defined EXAMPLE_NAME set EXAMPLE_NAME=intro_sqlite_function_list
+rem  --features bundled
+call cargo build
+call cargo run --example "%EXAMPLE_NAME%"
+cd /d "%BASEDIR%"
+
+echo ---------- Built    RUSQLITE -----------
+
+exit /b 0
+```
+
+In addition to "-D" compiler options, for each linked library, the script passes the "INCLUDE_DIR" compiler options and "LIB_DIR" and the names of the \*.lib files.
+
+Because the SQLite library is linked statically, the most obvious way to demonstrate the difference between the regular and custom SQLite versions is to build and run a specially crafted demo. The prepared demo returns results from two queries:
+
+```sql
+SELECT name FROM pragma_module_list() ORDER BY name;
+SELECT lower('щЩэЭюЮфФ') || upper('щЩэЭюЮфФ');
+```
+
+The first query returns the list of available modules; the second query tests case conversion with non-ANSI (in this case, Cyrillic) characters. Below is the output produced from this example compiled with and without the extras (manually aligned). To be fair, in this particular case, this exercise was not a 100% success. It is important to remember that static linking is merely a request, which may or may not be honored. It turned out that with all the extras added, including three dynamically linked DLLs, static linking of SQLite was not possible.
+
+| +++++++Standard Build++++++++ | +++++++++With Extras+++++++++ |
+| ----------------------------- | ----------------------------- |
+|                               | bytecode                      |
+|                               | csv                           |
+| dbstat                        | dbstat                        |
+|                               | fsdir                         |
+| fts3                          | fts3                          |
+| fts3tokenize                  | fts3tokenize                  |
+| fts4                          | fts4                          |
+| fts4aux                       | fts4aux                       |
+| fts5                          | fts5                          |
+| fts5vocab                     | fts5vocab                     |
+|                               | generate_series               |
+|                               | geopoly                       |
+| json_each                     | json_each                     |
+| json_tree                     | json_tree                     |
+| pragma_module_list            | pragma_module_list            |
+| rtree                         | rtree                         |
+| rtree_i32                     | rtree_i32                     |
+|                               | sqlite_dbpage                 |
+|                               | sqlite_stmt                   |
+|                               | tables_used                   |
+|                               | zipfile                       |
+| CI Test: щЩэЭюЮфФщЩэЭюЮфФ     | CI Test: щщээююффЩЩЭЭЮЮФФ     |
