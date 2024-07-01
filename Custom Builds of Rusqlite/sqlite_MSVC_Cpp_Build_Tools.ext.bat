@@ -797,14 +797,19 @@ exit /b 0
 :SQLX_RUSQLITE
 :: 
 
+set RUST_BACKTRACE=full
 :: The SQLite3 source used by SQLx. Make sure this is correct.
-set LIBSQLITE3_SYS_SRC_DIR=C:\Users\evgeny\.cargo\registry\src\index.crates.io-6f17d22bba15001f\libsqlite3-sys-0.28.0\sqlite3
+set LIBSQLITE3_SYS_SRC_DIR=^
+C:\Users\evgeny\.cargo\registry\src\index.crates.io-6f17d22bba15001f\libsqlite3-sys-0.29.0\sqlite3
 :: Root of the project to be built (runs crago build/run here)
-set RUST_PROJ_DIR=B:\GH\sqlx\examples\sqlite\intro
+set RUST_PROJ_DIR=^
+B:\GH\SQLpage
 :: Target location of the built binary. Copy DLL dependencies here
-set RUST_BIN_DIR=B:\GH\sqlx\target\debug
+set RUST_BIN_DIR=^
+B:\GH\SQLpage\target\superoptimized
 :: Location of SQLx binary. Copy DLL dependencies here too.
-set PROJ_DEPS_BIN=B:\GH\sqlx\target\debug\deps
+set PROJ_DEPS_BIN=^
+B:\GH\SQLpage\target\superoptimized\deps
 
 if not exist "%RUST_PROJ_DIR%" (exit /b 0)
 
@@ -836,10 +841,12 @@ cd /d "%RUST_PROJ_DIR%"
 set LIBSQLITE3_FLAGS=%EXT_FEATURE_FLAGS%
 set SQLITE3_LIB_DIR=%BINDIR%"
 
-call cargo build
+if not exist "%RUST_BIN_DIR%" (mkdir "%RUST_BIN_DIR%")
+if not exist "%PROJ_DEPS_BIN%" (mkdir "%PROJ_DEPS_BIN%")
 copy /Y "%BINDIR%\*.dll" "%RUST_BIN_DIR%"
 copy /Y "%BINDIR%\*.dll" "%PROJ_DEPS_BIN%"
-call cargo run
+cargo build --profile superoptimized
+:: call cargo run
 
 cd /d "%BASEDIR%"
 
