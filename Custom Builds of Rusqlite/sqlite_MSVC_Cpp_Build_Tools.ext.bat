@@ -133,7 +133,10 @@ nmake /nologo /f Makefile.msc %TARGETS% 1>>"%STDOUTLOG%" 2>>"%STDERRLOG%"
 cd ..
 rem Leave BUILDDIR
 
+:: Build and run Rusqlite / SQLx projects
+::
 call :RUSQLITE
+call :SQLX_RUSQLITE
 
 set COPY_BINARIES=0
 if exist "%BUILDDIR%\sqlite3.dll" (set COPY_BINARIES=1)
@@ -758,7 +761,7 @@ if not exist "sqlite3.c.orig" (
     copy /Y "sqlite3.c" "sqlite3.c.orig"
     copy /Y "sqlite3.h" "sqlite3.h.orig"
 )
-copy /Y "%BINDIR%\src"
+copy /Y "%BINDIR%\src\*.*" .
 
 if %USE_ZLIB% EQU 1 (
     set ZLIBINCDIR=!DISTRODIR!\compat\zlib
@@ -786,6 +789,61 @@ call cargo run --example "%EXAMPLE_NAME%"
 cd /d "%BASEDIR%"
 
 echo ---------- Built    RUSQLITE -----------
+
+exit /b 0
+
+
+:: ============================================================================
+:SQLX_RUSQLITE
+:: 
+
+:: The SQLite3 source used by SQLx. Make sure this is correct.
+set LIBSQLITE3_SYS_SRC_DIR=C:\Users\evgeny\.cargo\registry\src\index.crates.io-6f17d22bba15001f\libsqlite3-sys-0.28.0\sqlite3
+:: Root of the project to be built (runs crago build/run here)
+set RUST_PROJ_DIR=B:\GH\sqlx\examples\sqlite\intro
+:: Target location of the built binary. Copy DLL dependencies here
+set RUST_BIN_DIR=B:\GH\sqlx\target\debug
+:: Location of SQLx binary. Copy DLL dependencies here too.
+set PROJ_DEPS_BIN=B:\GH\sqlx\target\debug\deps
+
+if not exist "%RUST_PROJ_DIR%" (exit /b 0)
+
+echo ========== Building SQLX APP ===========
+
+cd /d "%LIBSQLITE3_SYS_SRC_DIR%"
+if not exist "sqlite3.c.orig" (
+    copy /Y "sqlite3.c" "sqlite3.c.orig"
+    copy /Y "sqlite3.h" "sqlite3.h.orig"
+)
+copy /Y "%BINDIR%\src\*.*" .
+
+if %USE_ZLIB% EQU 1 (
+    set ZLIBINCDIR=!DISTRODIR!\compat\zlib
+    set ZLIBLIBDIR=!DISTRODIR!\compat\zlib
+    set _CL_=!_CL_! "-I%DISTRODIR%\compat\zlib"
+    set LINK=!LINK! "/LIBPATH:!ZLIBLIBDIR!"
+    set _LINK_=!_LINK_! zdll.lib
+)
+
+if %USE_ICU% EQU 1 (
+    set _CL_=!_CL_! -DSQLITE_ENABLE_ICU=1 "-I!ICUINCDIR!"
+    set LINK=!LINK! "/LIBPATH:!ICULIBDIR!"
+    set _LINK_=!_LINK_! icuuc.lib icuin.lib
+    set Path=!ICUBINDIR!;!Path!
+)
+
+cd /d "%RUST_PROJ_DIR%"
+set LIBSQLITE3_FLAGS=%EXT_FEATURE_FLAGS%
+set SQLITE3_LIB_DIR=%BINDIR%"
+
+call cargo build
+copy /Y "%BINDIR%\*.dll" "%RUST_BIN_DIR%"
+copy /Y "%BINDIR%\*.dll" "%PROJ_DEPS_BIN%"
+call cargo run
+
+cd /d "%BASEDIR%"
+
+echo ---------- Built    SQLX APP -----------
 
 exit /b 0
 
